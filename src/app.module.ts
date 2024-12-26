@@ -7,7 +7,7 @@ import { AiModule } from './ai/ai.module';
 import { VideoCdnModule } from './video-cdn/video-cdn.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { CustomerKalmSystem } from './kalm-system/entities/customer.entity';
+// import { CustomerKalmSystem } from './kalm-system/entities/customer.entity';
 
 @Module({
   imports: [
@@ -24,7 +24,7 @@ import { CustomerKalmSystem } from './kalm-system/entities/customer.entity';
         username: configService.get('POSTGRES_USER'),
         password: configService.get('POSTGRES_PASSWORD'),
         database: configService.get('POSTGRES_DB'),
-        entities: [CustomerKalmSystem], // Busca entidades en toda la aplicación
+        entities: [__dirname + '/entities/*.entity{.ts,.js}'], // Solo entidades de PostgreSQL
         synchronize: true,
         logging: true,
         autoLoadEntities: true, // Carga automáticamente las entidades

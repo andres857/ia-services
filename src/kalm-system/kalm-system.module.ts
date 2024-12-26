@@ -5,7 +5,11 @@ import { KalmSystemController } from './kalm-system.controller';
 import { KalmSystemService } from './kalm-system.service';
 
 import { CustomerKalmSystem } from './entities/customer.entity';
-
+import { ClubKalmSystem } from './entities/club.entity';
+import { ContentVideoKalmSystem } from './entities/content_video.entity';
+import { ContentImageKalmSystem } from './entities/content_image.entity';
+import { ImagesKalmSystem } from './entities/images.entity';
+import { ContentsKalmSystem } from './entities/contents.entity';
 
 @Module({
   imports: [
@@ -20,14 +24,12 @@ import { CustomerKalmSystem } from './entities/customer.entity';
         username: configService.get('DB_USERNAME'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_DATABASE'),
-        entities: [__dirname + '/**/*.entity{.ts,.js}'], 
-        // entities: [CustomerKalmSystem], // Busca entidades en este módulo
-        // Busca entidades en este módulo
+        entities: [CustomerKalmSystem, ClubKalmSystem, ContentVideoKalmSystem, ContentImageKalmSystem, ImagesKalmSystem, ContentsKalmSystem], 
         synchronize: false, // En producción siempre false
         logging: true,
       }),
     }),
-    TypeOrmModule.forFeature([CustomerKalmSystem], 'kalm'),
+    TypeOrmModule.forFeature([CustomerKalmSystem, ClubKalmSystem, ContentVideoKalmSystem, ContentImageKalmSystem, ImagesKalmSystem, ContentsKalmSystem], 'kalm'),
   ],
   controllers: [KalmSystemController],
   providers: [KalmSystemService],
