@@ -1,5 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { ProcessingTemplate } from './processing-template.entity';
+import { ContentExtraction } from './content-extraction.entity';
 
 export enum ProcessingState {
   PENDING = 'pending',
@@ -12,14 +13,6 @@ export enum ProcessingState {
 export class Inference {
   @PrimaryGeneratedColumn('uuid')
   id: string;
-
-  @Column('uuid')
-  video_transcription_id: string;
-
-  // Actualizamos la relación para reflejar el nuevo nombre
-  @ManyToOne(() => ProcessingTemplate, template => template.inferences)
-  @JoinColumn({ name: 'template_id' })
-  processing_template: ProcessingTemplate;
 
   // El rol ahora viene del template, pero podemos mantener una copia por razones históricas
   @Column()
@@ -54,4 +47,12 @@ export class Inference {
 
   @UpdateDateColumn({ type: 'timestamp' })
   updated_at: Date;
+
+  @ManyToOne(() => ProcessingTemplate, template => template.inferences)
+  @JoinColumn({ name: 'template_id' })
+  processing_template: ProcessingTemplate;
+
+  @ManyToOne(() => ContentExtraction, contentExtraction => contentExtraction.inferences)
+  @JoinColumn({ name: 'content_extraction_id' })
+  content_extraction: ContentExtraction;
 }
