@@ -8,6 +8,7 @@ import { VideoCdnModule } from './video-cdn/video-cdn.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 // import { CustomerKalmSystem } from './kalm-system/entities/customer.entity';
+import { ProcessingTemplateModule } from './processing-template/processing-template.module';
 
 @Module({
   imports: [
@@ -32,7 +33,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         retryDelay: 3000, // Delay entre intentos en milisegundos
       }),
     }),
-    KalmSystemModule, AiModule, VideoCdnModule,],
+    KalmSystemModule, AiModule, VideoCdnModule, ProcessingTemplateModule,],
   controllers: [AppController],
   providers: [AppService,],
 })
