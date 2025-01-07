@@ -1,5 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { Inference } from './inference.entity';
+import { CustomerQuota } from '../../ai/entities/customer_quotas.entity';
 
 export enum ExtractionState {
   PENDING = 'pending',
@@ -84,4 +85,8 @@ export class ContentExtraction {
 
   @OneToMany(() => Inference, inference => inference.content_extraction)
   inferences: Inference[];
+
+  @ManyToOne(() => CustomerQuota, quota => quota.content_extractions)
+  @JoinColumn({ name: 'customer_quota_id' })
+  customer_quota: CustomerQuota;
 }

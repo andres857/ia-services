@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 
@@ -49,47 +49,91 @@ export class KalmSystemService {
     }
 
     async buildUrlContentVideo(idCustomer: number, idContent: number) {
-        const customer = await this.customerRepository.findOne({ where: { id: idCustomer } });
-        const urlComplete = `${customer.name}/storage/`;
-        const image_id = await this.contentImageRepository.findOne({ where: { content_id: idContent } });
-        const image = await this.imagesRepository.findOne({ where: { id: image_id.id } });
-        image.name = urlComplete + image.name;
-        return image;
+        console.log('lo');
+        
+        try {
+            const customer = await this.customerRepository.findOne({ where: { id: idCustomer } });
+            if (!customer) {                
+                throw new NotFoundException(
+                    `No se encontró el cliente con ID ${idCustomer}`
+                );
+            }
+            console.log('customer', customer);
+            const urlComplete = `https://${customer.urlPortal}/${customer.name}/storage/`;
+            const image_id = await this.contentImageRepository.findOne({ where: { content_id: idContent } });
+            if (!image_id) {
+                console.log('no hayyyyyyyyyyyyyyy1');
+                return null;
+            }
+            console.log('hereeeeee', image_id);
+            const image = await this.imagesRepository.findOne({ where: { id: image_id.id } });
+            if (image?.name){
+                if (URL.canParse(`${urlComplete}${image.name}`)) {
+                    const url = new URL(`${urlComplete}${image.name}`);
+                    return url;
+                } else {
+                    throw new Error('URL inválida');
+                }
+            }
+            console.log('no hayyyyyyyyyyyyyyy');
+            return null;
+        } catch (error) {
+            console.error('Error en el proceso de construcción de la URL del video', error);
+            throw error;
+        }
     }
 
     async buildUrlsContentVideoByIdCustomer(customerId: number) {
         const ID_CONTENT_TYPE_VIDEO = 2;
-        const customer = await this.customerRepository.findOne({ where: { id: customerId } });
-        const urlComplete = `${customer.name}/storage/`;
-        
-        const clubs = await this.clubRepository.find({ where: { client_id: customerId } });
-
-        const urlsVideos = await Promise.all(clubs.map(async (club) => {
-            const contentsTypeVideo = await this.contentsRepository.find({ 
-                where: { 
-                    club_id: club.id,
-                    content_type_id: ID_CONTENT_TYPE_VIDEO
-                } 
-            });
-            if (contentsTypeVideo.length > 0) {
-                const urlsVideos = await Promise.all(contentsTypeVideo.map(async (content) => {
-                    const image_id = await this.contentImageRepository.findOne({ where: { content_id: content.id } }); 
-                    const image = await this.imagesRepository.findOne({ where: { id: image_id.id } });                    
-                    if (image.type === 'video/mp4') {
-                        image.name = urlComplete + image.name;
-                        return {
-                            id: image.id,
-                            name: image.name,
+        try {
+            const customer = await this.customerRepository.findOne({ where: { id: customerId } });
+            if (!customer) {
+                return null;
+            }
+    
+            const urlComplete = `${customer.name}/storage/`;        
+            const clubs = await this.clubRepository.find({ where: { client_id: customerId } });
+            
+            const urlsVideos = await Promise.all(clubs.map(async (club) => {
+                try {
+                    const contentsTypeVideo = await this.contentsRepository.find({ 
+                        where: { 
+                            club_id: club.id,
+                            content_type_id: ID_CONTENT_TYPE_VIDEO
                         }
+                    });
+                    if (contentsTypeVideo.length > 0) {
+                        const urlsVideos = await Promise.all(contentsTypeVideo.map(async (content) => {
+                            
+                            const image_id = await this.contentImageRepository.findOne({ where: { content_id: content.id } });
+                            if (!image_id) {
+                                return null;
+                            }
+                            const image = await this.imagesRepository.findOne({ where: { id: image_id.id } });                                 
+                            if (image?.type === 'video/mp4') {
+                                image.name = urlComplete + image.name;
+                                return {
+                                    id: image.id,
+                                    name: image.name,
+                                }
+                            }
+                            return null;
+                        }));
+                        const filteredVideos = urlsVideos.filter(url => url !== null);
+                        return filteredVideos;
                     }
                     return null;
-                }));
-                const filteredVideos = urlsVideos.filter(url => url !== null);
-                return filteredVideos;
-            }
-            return null;
-        }));
-        const filteredVideos = urlsVideos.filter(url => url !== null);
-        return filteredVideos;
+                } catch (error) {
+                    console.error(`Error in the process build urls videos for the club ${club.id}`);
+                    return null;
+                }
+    
+            }));
+            const filteredVideos = urlsVideos.filter(url => url !== null);
+            return filteredVideos.flat();
+        } catch (error) {
+            // console.error(`Error in the process build urls videos for the club ${club.id}`);
+            throw new Error('Error obteniendo la informacion del cliente');
+        }
     }
 }
